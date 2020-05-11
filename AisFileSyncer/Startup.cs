@@ -9,6 +9,7 @@ namespace AisFileSyncer
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IAppFiles, AppFiles>();
             services.AddSingleton<IFileProvider, FileProvider>();
         }
 

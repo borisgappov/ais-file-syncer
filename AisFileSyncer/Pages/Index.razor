@@ -1,9 +1,12 @@
 ﻿@page "/"
+@using System
 @using AisFileSyncer.Infrastructure.Interfaces
 @using AisFileSyncer.Infrastructure.Models
 @inject IFileProvider _fileProvider
 
 <h1>Files</h1>
+
+@AppDomain.CurrentDomain.GetData("AisFileSyncerDataPath")
 
 @if (files == null)
 {
@@ -11,6 +14,8 @@
 }
 else
 {
+    <button class="btn btn-primary" @onclick="LoadFileListAsync">Reload</button>
+
     <table class="table">
         <thead>
             <tr>
@@ -32,6 +37,11 @@ else
     List<FileModel> files;
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadFileListAsync();
+    }
+
+    async Task LoadFileListAsync()
     {
         files = await _fileProvider.GetUrlListAsync().ConfigureAwait(false);
     }
