@@ -1,12 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <OutputType>WinExe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="WebWindow.Blazor" Version="0.1.0-20200214.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AisFileSyncer.Infrastructure\AisFileSyncer.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,3 +1,4 @@
-/obj
-/.vs
-/bin
+/AisFileSyncer.Infrastructure/obj
+/AisFileSyncer.Infrastructure/bin
+/AisFileSyncer.Infrastructure.UnitTests/obj
+/AisFileSyncer.Infrastructure.UnitTests/bin

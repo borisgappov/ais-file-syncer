@@ -1,0 +1,38 @@
+﻿@page "/"
+@using AisFileSyncer.Infrastructure.Interfaces
+@using AisFileSyncer.Infrastructure.Models
+@inject IFileProvider _fileProvider
+
+<h1>Files</h1>
+
+@if (files == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>File Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var file in files)
+            {
+                <tr>
+                    <td>@file.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    List<FileModel> files;
+
+    protected override async Task OnInitializedAsync()
+    {
+        files = await _fileProvider.GetUrlListAsync().ConfigureAwait(false);
+    }
+}
