@@ -1,9 +1,6 @@
-﻿using AisFileSyncer.Infrastructure.Extensions;
-using AisFileSyncer.Infrastructure.Interfaces;
-using AisFileSyncer.Infrastructure.Models;
+﻿using AisFileSyncer.Infrastructure.Interfaces;
 using System;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace AisFileSyncer.Infrastructure.Services
 {
@@ -11,41 +8,35 @@ namespace AisFileSyncer.Infrastructure.Services
     {
         private const string _appDirName = "aisdata";
         private const string _filesDirName = "files";
-        private const string _listFileName = "list.json";
-        private readonly string _appDataDir;
-        private readonly string _filesDir;
-        private readonly string _listFile;
+
+        public string AppDir { get; set; }
+        public string FilesDir { get; set; }
+
         public AppFiles()
         {
-            _appDataDir = Environment.ExpandEnvironmentVariables($@"%USERPROFILE%\{_appDirName}");
-            _filesDir = Path.Combine(_appDataDir, _filesDirName);
-            _listFile = Path.Combine(_appDataDir, _listFileName);
-            Directory.CreateDirectory(_filesDir);
+            AppDir = Environment.ExpandEnvironmentVariables($@"%USERPROFILE%\{_appDirName}");
+            FilesDir = Path.Combine(AppDir, _filesDirName);
+            Directory.CreateDirectory(FilesDir);
         }
 
-        public string GetAppDir()
+        public string GetFilePath(string FileName)
         {
-            return _appDataDir;
-        }
-
-        public string GetFilesDir()
-        {
-            return _filesDir;
+            return Path.Combine(FilesDir, FileName);
         }
 
         public void DeleteFile(string FileName)
         {
-            File.Delete(Path.Combine(_appDataDir, FileName));
+            File.Delete(GetFilePath(FileName));
         }
 
-        public async Task SaveFileList(FileModel[] Files)
+        public string GetFileName(Uri uri)
         {
-            await File.WriteAllTextAsync(_listFile, Files.ToJSON()).ConfigureAwait(false);
+            return Path.GetFileName(uri.LocalPath);
         }
 
-        public async Task<FileModel[]> ReadFileList()
+        public string GetFilePath(Uri uri)
         {
-            return (await File.ReadAllTextAsync(_listFile).ConfigureAwait(false)).FromJSON<FileModel[]>();
+            return GetFilePath(GetFileName(uri));
         }
     }
 }

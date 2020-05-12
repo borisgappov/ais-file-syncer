@@ -1,18 +1,21 @@
-﻿using System.Threading.Tasks;
-using AisFileSyncer.Infrastructure.Models;
+﻿using System;
 
 namespace AisFileSyncer.Infrastructure.Interfaces
 {
     public interface IAppFiles
     {
-        string GetAppDir();
 
-        string GetFilesDir();
+        public string AppDir { get; set; }
+
+        public string FilesDir { get; set; }
+
+        string GetFileName(Uri uri);
+
+        string GetFilePath(Uri uri);
+
+        string GetFilePath(string FileName);
 
         void DeleteFile(string FileName);
 
-        Task SaveFileList(FileModel[] Files);
-
-        Task<FileModel[]> ReadFileList();
     }
 }

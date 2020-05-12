@@ -1,32 +1,34 @@
 ﻿using AisFileSyncer.Infrastructure.Interfaces;
 using AisFileSyncer.Infrastructure.Models;
 using AisUriProviderApi;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace AisFileSyncer.Infrastructure.Services
 {
-    public class FileProvider : IFileProvider
+    public class FileListProvider : IFileListProvider
     {
         private readonly AisUriProvider _uriProvider;
+        private readonly IAppFiles _appFiles;
 
-        public FileProvider()
+        public FileListProvider(IAppFiles appFiles)
         {
+            _appFiles = appFiles;
             _uriProvider = new AisUriProvider();
         }
 
-        public async Task<List<FileModel>> GetUrlListAsync()
+        public async Task<FileModel[]> GetUrlListAsync()
         {
             return await Task.Run(() =>
             {
                 return _uriProvider
                     .Get()
                     .Select(x => new FileModel {
-                        Name = System.IO.Path.GetFileName(x.LocalPath),
+                        Name = _appFiles.GetFileName(x),
                         Uri = x
                     })
-                    .ToList();
+                    .OrderBy(x => x.Name)
+                    .ToArray();
             });
         }
     }

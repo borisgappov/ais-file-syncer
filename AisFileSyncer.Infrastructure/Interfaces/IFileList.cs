@@ -1,12 +1,12 @@
 ﻿using AisFileSyncer.Infrastructure.Models;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AisFileSyncer.Infrastructure.Interfaces
 {
-    public interface IFileProvider
+    public interface IFileList
     {
-        Task<List<FileModel>> GetUrlListAsync();
+        Task SaveFileList(FileModel[] Files);
 
+        Task<FileModel[]> ReadFileList();
     }
 }

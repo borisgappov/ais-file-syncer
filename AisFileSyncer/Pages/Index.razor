@@ -2,7 +2,9 @@
 @using System
 @using AisFileSyncer.Infrastructure.Interfaces
 @using AisFileSyncer.Infrastructure.Models
-@inject IFileProvider _fileProvider
+@using AisFileSyncer.Infrastructure.Extensions
+@inject IFileListProvider _fileProvider
+@inject IDownloadManager _downloadManager
 
 <h1>Files</h1>
 
@@ -15,11 +17,14 @@
 else
 {
     <button class="btn btn-primary" @onclick="LoadFileListAsync">Reload</button>
+    <button class="btn btn-primary" @onclick="Cancel">Cancel</button>
 
     <table class="table">
         <thead>
             <tr>
                 <th>File Name</th>
+                <th>Status</th>
+                <th>Download time</th>
             </tr>
         </thead>
         <tbody>
@@ -27,6 +32,8 @@ else
             {
                 <tr>
                     <td>@file.Name</td>
+                    <td>@file.DownloadStatus</td>
+                    <td>@file.DownloadSpan.ToString()</td>
                 </tr>
             }
         </tbody>
@@ -34,15 +41,23 @@ else
 }
 
 @code {
-    List<FileModel> files;
+    FileModel[] files;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadFileListAsync();
     }
 
+    void Cancel()
+    {
+        _downloadManager.Cancel();
+    }
+
     async Task LoadFileListAsync()
     {
         files = await _fileProvider.GetUrlListAsync().ConfigureAwait(false);
+        await _downloadManager.Download(files, (file) => this.StateHasChanged(), () => {
+            this.StateHasChanged();
+        });
     }
 }
