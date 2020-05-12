@@ -2,6 +2,7 @@
 using AisFileSyncer.Infrastructure.Interfaces;
 using AisFileSyncer.Infrastructure.Models;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AisFileSyncer.Infrastructure.Services
@@ -10,22 +11,35 @@ namespace AisFileSyncer.Infrastructure.Services
     {
         private const string _listFileName = "list.json";
         private readonly string _listFile;
-        private readonly IAppFiles _appFiles;
+        private FileModel[] _lastSaved = null;
 
         public FileList(IAppFiles appFiles)
         {
-            _appFiles = appFiles;
             _listFile = Path.Combine(appFiles.AppDir, _listFileName);
         }
 
-        public async Task SaveFileList(FileModel[] Files)
+        public async Task SaveFileList(FileModel[] files)
         {
-            await File.WriteAllTextAsync(_listFile, Files.ToJSON()).ConfigureAwait(false);
+            _lastSaved = files.Where(x => x.DownloadStatus == FileDownloadStatus.Done).ToArray();
+            await File.WriteAllTextAsync(_listFile, _lastSaved.ToJSON()).ConfigureAwait(false);
         }
 
         public async Task<FileModel[]> ReadFileList()
         {
-            return (await File.ReadAllTextAsync(_listFile).ConfigureAwait(false)).FromJSON<FileModel[]>();
+            var emptyResult = new FileModel[] { };
+            return File.Exists(_listFile)
+                ? (await File.ReadAllTextAsync(_listFile).ConfigureAwait(false)).FromJSON(emptyResult)
+                : emptyResult;
+        }
+
+        public async Task<FileModel[]> GetFileList()
+        {
+            if (_lastSaved == null)
+            {
+                _lastSaved = await ReadFileList();
+            }
+
+            return _lastSaved;
         }
     }
 }

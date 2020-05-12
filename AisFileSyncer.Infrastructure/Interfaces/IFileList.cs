@@ -5,8 +5,10 @@ namespace AisFileSyncer.Infrastructure.Interfaces
 {
     public interface IFileList
     {
-        Task SaveFileList(FileModel[] Files);
+        Task SaveFileList(FileModel[] files);
 
         Task<FileModel[]> ReadFileList();
+
+        Task<FileModel[]> GetFileList();
     }
 }

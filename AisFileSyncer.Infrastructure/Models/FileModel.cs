@@ -23,5 +23,7 @@ namespace AisFileSyncer.Infrastructure.Models
         public long DownloadedBytes { get; set; }
 
         public long Size { get; set; }
+
+        public int Percent { get; set; }
     }
 }

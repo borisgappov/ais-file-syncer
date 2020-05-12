@@ -2,3 +2,5 @@
 /AisFileSyncer.Infrastructure/bin
 /AisFileSyncer.Infrastructure.UnitTests/obj
 /AisFileSyncer.Infrastructure.UnitTests/bin
+/.vs
+/.vs/AisFileSyncer/v16/*.suo

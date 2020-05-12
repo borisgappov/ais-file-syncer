@@ -26,7 +26,14 @@ namespace AisFileSyncer.Infrastructure.Services
 
         public void DeleteFile(string FileName)
         {
-            File.Delete(GetFilePath(FileName));
+            try
+            {
+                File.Delete(GetFilePath(FileName));
+            }
+            catch
+            {
+                // log here
+            }
         }
 
         public string GetFileName(Uri uri)

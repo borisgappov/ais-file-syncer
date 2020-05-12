@@ -5,7 +5,7 @@ namespace AisFileSyncer.Infrastructure.Interfaces
 {
     public interface IFileListProvider
     {
-        Task<FileModel[]> GetUrlListAsync();
+        Task<FileModel[]> GetUrlListAsync(bool reload = true);
 
     }
 }
