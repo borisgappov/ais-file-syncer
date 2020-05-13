@@ -33,8 +33,9 @@ namespace AisFileSyncer.Infrastructure.Services
                     file.DownloadedBytes = downloadedBytes;
                     file.Size = size;
                     file.Percent = Convert.ToInt32(Math.Round(100m * Convert.ToDecimal(downloadedBytes) / Convert.ToDecimal(size)));
-                    downloadedCallback?.Invoke(file);
+                    file.DownloadSpan = DateTime.UtcNow - startedAt;
                 });
+                downloadedCallback?.Invoke(file);
                 stream.Flush();
             }
             catch (TaskCanceledException ex)

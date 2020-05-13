@@ -15,6 +15,7 @@ namespace AisFileSyncer.Infrastructure.Services
     {
         public FileModel[] files { get; set; }
         public FileDownloadStatus Status { get; set; }
+        public int NumberOfTasks { get; set; } = 3;
         private CancellationTokenSource cts;
         private readonly IFileDownloader _fileDownloader;
         private readonly IFileService _fileService;
@@ -40,7 +41,7 @@ namespace AisFileSyncer.Infrastructure.Services
             _timer.Start(async () => await Sync(), _interval);
         }
 
-        public async Task Sync(bool reload = true)
+        public async Task Sync(bool restore = false, bool reloadAll = false)
         {
             if (Status == FileDownloadStatus.InProgress)
             {
@@ -50,7 +51,7 @@ namespace AisFileSyncer.Infrastructure.Services
             cts = new CancellationTokenSource();
             Status = FileDownloadStatus.InProgress;
 
-            files = await GetUrlListAsync(reload);
+            files = await GetUrlListAsync(restore, reloadAll);
 
             OnFileListLoaded?.Invoke(files);
 
@@ -59,7 +60,7 @@ namespace AisFileSyncer.Infrastructure.Services
                 .ForEachAsyncConcurrent(async x =>
                 {
                     await _fileDownloader.Download(x, cts.Token, (f) => { OnFileDownloaded?.Invoke(); });
-                }, 3);
+                }, NumberOfTasks);
 
             Status = cts.IsCancellationRequested
                 ? FileDownloadStatus.Cancelled
@@ -86,13 +87,13 @@ namespace AisFileSyncer.Infrastructure.Services
             cts?.Cancel();
         }
 
-        private async Task<FileModel[]> GetUrlListAsync(bool reload = true)
+        private async Task<FileModel[]> GetUrlListAsync(bool restore = false, bool reloadAll = false)
         {
             var previous = (await GetFileList())
                 .Where(x => x.DownloadStatus == FileDownloadStatus.Done && File.Exists(_fileService.GetFilePath(x.Name)))
                 .ToArray();
 
-            if (!reload && previous.Count(x => x.DownloadStatus == FileDownloadStatus.Done) > 0)
+            if (!reloadAll && restore && previous.Count(x => x.DownloadStatus == FileDownloadStatus.Done) > 0)
             {
                 return previous;
             }
@@ -104,12 +105,18 @@ namespace AisFileSyncer.Infrastructure.Services
                     .Select(x => new FileModel
                     {
                         Name = _fileService.GetFileName(x),
-                        Uri = x
+                        Uri = x,
+                        DownloadStatus = FileDownloadStatus.Waiting
                     })
                     .OrderBy(x => Path.GetFileNameWithoutExtension(x.Name).Length)
                     .ThenBy(x => x.Name)
                     .ToArray();
             });
+
+            if (reloadAll)
+            {
+                return files;
+            }
 
             files = (from f in files
                      from p in previous.Where(x => x.Name == f.Name).DefaultIfEmpty()
@@ -148,6 +155,10 @@ namespace AisFileSyncer.Infrastructure.Services
         public void Dispose()
         {
             _timer.Dispose();
+            if (Status == FileDownloadStatus.InProgress)
+            {
+                Cancel();
+            }
         }
     }
 }

@@ -2,8 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
+    <ApplicationIcon>blazor.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\blazor.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\blazor.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="WebWindow.Blazor" Version="0.1.0-20200214.10" />

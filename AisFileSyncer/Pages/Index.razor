@@ -1,17 +1,38 @@
 ﻿@page "/"
-@using System
 @using AisFileSyncer.Infrastructure.Interfaces
 @using AisFileSyncer.Infrastructure.Models
+@using AisFileSyncer.Infrastructure.Utils
 @inject ISyncer _syncer
 
-@if (files == null)
+@if (_files == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <button class="btn btn-primary" @onclick="SyncClick" disabled="@Downloading">Sync</button>
-    <button class="btn btn-primary" @onclick="Cancel" disabled="@NotDownloading">Cancel</button>
+<div class="d-flex pb-2">
+    <button class="btn btn-primary" @onclick="SyncClick" disabled="@InProgress">Sync</button>
+    <button class="btn btn-primary ml-2" @onclick="ReloadAll" disabled="@InProgress">Reload</button>
+    <div class="ml-2 pt-1 mr-1">
+        Number of tasks:
+    </div>
+    <div>
+        <Dropdown TItem="string" OnSelected="@OnSelected" disabled="@InProgress">
+            <InitialTip>@_selectedNumber</InitialTip>
+            <ChildContent>
+                @foreach (var n in _threadNumbers)
+                {
+                    <DropdownListItem Item="@n.ToString()">@n</DropdownListItem>
+                }
+            </ChildContent>
+        </Dropdown>
+    </div>
+    <button class="btn btn-primary" @onclick="Cancel" disabled="@NotInProgress">Cancel</button>
+    <div class="custom-control custom-checkbox m-2">
+        <input type="checkbox" class="custom-control-input" id="doneCheck" @bind="exit">
+        <label class="custom-control-label" for="doneCheck">Exit when done</label>
+    </div>
+</div>
 
     <table class="table">
         <thead>
@@ -23,59 +44,86 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var file in files)
+            @lock (_lock)
             {
-                <tr>
-                    <td>@file.Name</td>
-                    <td>@file.DownloadStatus</td>
-                    <td>@file.Percent</td>
-                    <td>@file.DownloadSpan.ToString()</td>
-                </tr>
+                @foreach (var file in _files)
+                {
+                    <tr>
+                        <td>@file.Name</td>
+                        <td>@file.DownloadStatus</td>
+                        <td>@file.Percent</td>
+                        <td>@file.DownloadSpan.ToString(@"mm\:ss\.fff")</td>
+                    </tr>
+                }
             }
         </tbody>
     </table>
 }
 
 @code {
-    FileModel[] files;
+    object _lock = new object();
 
-    protected bool Downloading
-    {
-        get
-        {
-            return _syncer.Status == FileDownloadStatus.InProgress;
-        }
-    }
+    FileModel[] _files;
 
-    protected bool NotDownloading
-    {
-        get
-        {
-            return !Downloading;
-        }
-    }
+    int[] _threadNumbers = Enumerable.Range(1, 10).ToArray();
+    int _selectedNumber = 0;
+    SyncTimer _timer = new SyncTimer();
+
+    public bool InProgress { get => _syncer?.Status == FileDownloadStatus.InProgress; }
+    public bool NotInProgress { get => !InProgress; }
+
+    bool exit = false;
 
     protected override async Task OnInitializedAsync()
     {
-        _syncer.OnFileListLoaded += (x) => {
-            files = x;
-            this.StateHasChanged();
-        };
+        _selectedNumber = _syncer.NumberOfTasks;
 
-        _syncer.OnFileDownloaded += () => { this.StateHasChanged(); };
+        _syncer.OnFileListLoaded += (x) => _files = x;
+
+        _syncer.OnFileDownloaded += () => this.StateHasChanged();
 
         _syncer.OnAllFilesDownloaded += () =>
         {
-            System.Threading.Thread.Sleep(100);
+            _timer.Stop();
             this.StateHasChanged();
+            if (exit)
+            {
+                Environment.Exit(-1);
+            }
         };
 
-        await LoadFileListAsync(reload: false);
+        if (_syncer.files == null)
+        {
+            await _syncer.Sync(restore: true);
+            StartTimer();
+        }
+        else
+        {
+            _files = _syncer.files;
+        }
+
+        if (InProgress)
+        {
+            StartTimer();
+        }
     }
 
     async Task SyncClick()
     {
-        await LoadFileListAsync();
+        await _syncer.Sync();
+        StartTimer();
+    }
+
+    async Task ReloadAll()
+    {
+        await _syncer.Sync(reloadAll: true);
+        StartTimer();
+    }
+
+    private async Task OnSelected(string selection)
+    {
+        _selectedNumber = Convert.ToInt32(selection);
+        _syncer.NumberOfTasks = _selectedNumber;
     }
 
     void Cancel()
@@ -83,8 +131,8 @@ else
         _syncer.Cancel();
     }
 
-    async Task LoadFileListAsync(bool reload = true)
+    void StartTimer()
     {
-        await _syncer.Sync(reload);
+        _timer.Start(() => this.StateHasChanged(), 300);
     }
 }

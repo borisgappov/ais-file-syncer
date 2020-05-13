@@ -12,7 +12,10 @@ namespace AisFileSyncer.Infrastructure.Interfaces
     public interface ISyncer : IDisposable
     {
         public FileModel[] files { get; set; }
+        
         FileDownloadStatus Status { get; set; }
+
+        public int NumberOfTasks { get; set; }
 
         public event FileListLoadedEventHandler OnFileListLoaded;
 
@@ -20,7 +23,7 @@ namespace AisFileSyncer.Infrastructure.Interfaces
 
         public event SyncEventHandler OnAllFilesDownloaded;
 
-        Task Sync(bool reload = true);
+        Task Sync(bool restore = false, bool reloadAll = false);
 
         void Cancel();
     }
