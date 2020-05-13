@@ -1,6 +1,7 @@
 ﻿using AisFileSyncer.Infrastructure.Extensions;
 using AisFileSyncer.Infrastructure.Interfaces;
 using AisFileSyncer.Infrastructure.Models;
+using AisFileSyncer.Infrastructure.Utils;
 using AisUriProviderApi;
 using System;
 using System.IO;
@@ -12,15 +13,23 @@ namespace AisFileSyncer.Infrastructure.Services
 {
     public class Syncer : ISyncer
     {
+        public FileModel[] files { get; set; }
         public FileDownloadStatus Status { get; set; }
-
         private CancellationTokenSource cts;
         private readonly IFileDownloader _fileDownloader;
         private readonly IFileService _fileService;
         private readonly AisUriProvider _uriProvider;
         private readonly string _listFile;
         private FileModel[] _lastSaved = null;
+        private SyncTimer _timer = new SyncTimer();
         private const string _listFileName = "list.json";
+        private const double _interval = 1000 * 60 * 5; // 5 min
+
+        public event FileListLoadedEventHandler OnFileListLoaded;
+
+        public event SyncEventHandler OnFileDownloaded;
+
+        public event SyncEventHandler OnAllFilesDownloaded;
 
         public Syncer(IFileDownloader fileDownloader, IFileService fileService)
         {
@@ -28,9 +37,10 @@ namespace AisFileSyncer.Infrastructure.Services
             _fileService = fileService;
             _uriProvider = new AisUriProvider();
             _listFile = Path.Combine(fileService.AppDir, _listFileName);
+            _timer.Start(async () => await Sync(), _interval);
         }
 
-        public async Task Sync(FileModel[] files, Action<FileModel> downloadedCallback = null, Action completedCallback = null)
+        public async Task Sync(bool reload = true)
         {
             if (Status == FileDownloadStatus.InProgress)
             {
@@ -40,11 +50,15 @@ namespace AisFileSyncer.Infrastructure.Services
             cts = new CancellationTokenSource();
             Status = FileDownloadStatus.InProgress;
 
+            files = await GetUrlListAsync(reload);
+
+            OnFileListLoaded?.Invoke(files);
+
             await files
                 .Where(x => x.DownloadStatus != FileDownloadStatus.Done)
                 .ForEachAsyncConcurrent(async x =>
                 {
-                    await _fileDownloader.Download(x, cts.Token, downloadedCallback);
+                    await _fileDownloader.Download(x, cts.Token, (f) => { OnFileDownloaded?.Invoke(); });
                 }, 3);
 
             Status = cts.IsCancellationRequested
@@ -64,7 +78,7 @@ namespace AisFileSyncer.Infrastructure.Services
                 _fileService.DeleteFile(fileName);
             }
 
-            completedCallback?.Invoke();
+            OnAllFilesDownloaded?.Invoke();
         }
 
         public void Cancel()
@@ -72,7 +86,7 @@ namespace AisFileSyncer.Infrastructure.Services
             cts?.Cancel();
         }
 
-        public async Task<FileModel[]> GetUrlListAsync(bool reload = true)
+        private async Task<FileModel[]> GetUrlListAsync(bool reload = true)
         {
             var previous = (await GetFileList())
                 .Where(x => x.DownloadStatus == FileDownloadStatus.Done && File.Exists(_fileService.GetFilePath(x.Name)))
@@ -129,6 +143,11 @@ namespace AisFileSyncer.Infrastructure.Services
             }
 
             return _lastSaved;
+        }
+
+        public void Dispose()
+        {
+            _timer.Dispose();
         }
     }
 }

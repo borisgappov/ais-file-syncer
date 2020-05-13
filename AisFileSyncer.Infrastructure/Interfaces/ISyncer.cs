@@ -4,13 +4,23 @@ using System.Threading.Tasks;
 
 namespace AisFileSyncer.Infrastructure.Interfaces
 {
-    public interface ISyncer
+
+    public delegate void FileListLoadedEventHandler(FileModel[] files);
+
+    public delegate void SyncEventHandler();
+
+    public interface ISyncer : IDisposable
     {
+        public FileModel[] files { get; set; }
         FileDownloadStatus Status { get; set; }
 
-        Task<FileModel[]> GetUrlListAsync(bool reload = true);
+        public event FileListLoadedEventHandler OnFileListLoaded;
 
-        Task Sync(FileModel[] files, Action<FileModel> downloadedCallback = null, Action completedCallback = null);
+        public event SyncEventHandler OnFileDownloaded;
+
+        public event SyncEventHandler OnAllFilesDownloaded;
+
+        Task Sync(bool reload = true);
 
         void Cancel();
     }

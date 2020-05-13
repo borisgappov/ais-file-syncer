@@ -10,8 +10,8 @@
 }
 else
 {
-    <button class="btn btn-primary" @onclick="ReloadClick" disabled="@Downloading">Reload</button>
-    <button class="btn btn-primary" @onclick="Cancel">Cancel</button>
+    <button class="btn btn-primary" @onclick="SyncClick" disabled="@Downloading">Sync</button>
+    <button class="btn btn-primary" @onclick="Cancel" disabled="@NotDownloading">Cancel</button>
 
     <table class="table">
         <thead>
@@ -47,12 +47,33 @@ else
         }
     }
 
+    protected bool NotDownloading
+    {
+        get
+        {
+            return !Downloading;
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        _syncer.OnFileListLoaded += (x) => {
+            files = x;
+            this.StateHasChanged();
+        };
+
+        _syncer.OnFileDownloaded += () => { this.StateHasChanged(); };
+
+        _syncer.OnAllFilesDownloaded += () =>
+        {
+            System.Threading.Thread.Sleep(100);
+            this.StateHasChanged();
+        };
+
         await LoadFileListAsync(reload: false);
     }
 
-    async Task ReloadClick()
+    async Task SyncClick()
     {
         await LoadFileListAsync();
     }
@@ -64,13 +85,6 @@ else
 
     async Task LoadFileListAsync(bool reload = true)
     {
-        files = await _syncer.GetUrlListAsync(reload).ConfigureAwait(false);
-
-        await _syncer.Sync(files, (file) => this.StateHasChanged(),
-            () =>
-            {
-                System.Threading.Thread.Sleep(100);
-                this.StateHasChanged();
-            });
+        await _syncer.Sync(reload);
     }
 }
