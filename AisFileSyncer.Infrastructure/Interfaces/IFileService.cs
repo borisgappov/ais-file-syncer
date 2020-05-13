@@ -2,7 +2,7 @@
 
 namespace AisFileSyncer.Infrastructure.Interfaces
 {
-    public interface IAppFiles
+    public interface IFileService
     {
 
         public string AppDir { get; set; }

@@ -9,11 +9,9 @@ namespace AisFileSyncer
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IAppFiles, AppFiles>();
-            services.AddSingleton<IFileList, FileList>();
+            services.AddSingleton<IFileService, FileService>();
             services.AddSingleton<IFileDownloader, FileDownloader>();
-            services.AddSingleton<IDownloadManager, DownloadManager>();
-            services.AddSingleton<IFileListProvider, FileListProvider>();
+            services.AddSingleton<ISyncer, Syncer>();
         }
 
         public void Configure(DesktopApplicationBuilder app)

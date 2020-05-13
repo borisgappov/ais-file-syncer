@@ -4,11 +4,13 @@ using System.Threading.Tasks;
 
 namespace AisFileSyncer.Infrastructure.Interfaces
 {
-    public interface IDownloadManager
+    public interface ISyncer
     {
         FileDownloadStatus Status { get; set; }
 
-        Task Download(FileModel[] files, Action<FileModel> downloadedCallback = null, Action completedCallback = null);
+        Task<FileModel[]> GetUrlListAsync(bool reload = true);
+
+        Task Sync(FileModel[] files, Action<FileModel> downloadedCallback = null, Action completedCallback = null);
 
         void Cancel();
     }

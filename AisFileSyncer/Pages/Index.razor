@@ -2,8 +2,7 @@
 @using System
 @using AisFileSyncer.Infrastructure.Interfaces
 @using AisFileSyncer.Infrastructure.Models
-@inject IFileListProvider _fileProvider
-@inject IDownloadManager _downloadManager
+@inject ISyncer _syncer
 
 @if (files == null)
 {
@@ -44,7 +43,7 @@ else
     {
         get
         {
-            return _downloadManager.Status == FileDownloadStatus.InProgress;
+            return _syncer.Status == FileDownloadStatus.InProgress;
         }
     }
 
@@ -60,14 +59,14 @@ else
 
     void Cancel()
     {
-        _downloadManager.Cancel();
+        _syncer.Cancel();
     }
 
     async Task LoadFileListAsync(bool reload = true)
     {
-        files = await _fileProvider.GetUrlListAsync(reload).ConfigureAwait(false);
+        files = await _syncer.GetUrlListAsync(reload).ConfigureAwait(false);
 
-        await _downloadManager.Download(files, (file) => this.StateHasChanged(),
+        await _syncer.Sync(files, (file) => this.StateHasChanged(),
             () =>
             {
                 System.Threading.Thread.Sleep(100);

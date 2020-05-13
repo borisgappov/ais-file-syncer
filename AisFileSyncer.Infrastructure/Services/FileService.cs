@@ -4,7 +4,7 @@ using System.IO;
 
 namespace AisFileSyncer.Infrastructure.Services
 {
-    public class AppFiles : IAppFiles
+    public class FileService : IFileService
     {
         private const string _appDirName = "aisdata";
         private const string _filesDirName = "files";
@@ -12,7 +12,7 @@ namespace AisFileSyncer.Infrastructure.Services
         public string AppDir { get; set; }
         public string FilesDir { get; set; }
 
-        public AppFiles()
+        public FileService()
         {
             AppDir = Environment.ExpandEnvironmentVariables($@"%USERPROFILE%\{_appDirName}");
             FilesDir = Path.Combine(AppDir, _filesDirName);

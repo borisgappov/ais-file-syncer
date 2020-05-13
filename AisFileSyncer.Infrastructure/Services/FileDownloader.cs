@@ -11,11 +11,11 @@ namespace AisFileSyncer.Infrastructure.Services
 {
     public class FileDownloader : IFileDownloader
     {
-        private readonly IAppFiles _appFiles;
+        private readonly IFileService _fileService;
 
-        public FileDownloader(IAppFiles appFiles)
+        public FileDownloader(IFileService fileService)
         {
-            _appFiles = appFiles;
+            _fileService = fileService;
         }
 
         public async Task<FileModel> Download(FileModel file, CancellationToken cancellationToken, Action<FileModel> downloadedCallback = null)
@@ -25,7 +25,7 @@ namespace AisFileSyncer.Infrastructure.Services
             var startedAt = DateTime.UtcNow;
             file.DownloadLog.Add($"{startedAt}, Download started");
 
-            var stream = new FileStream(_appFiles.GetFilePath(file.Uri), FileMode.Create);
+            var stream = new FileStream(_fileService.GetFilePath(file.Uri), FileMode.Create);
             try
             {
                 await DownloadFileAsync(file.Uri, stream, cancellationToken, (downloadedBytes, size) =>
