@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AisFileSyncer", "AisFileSyncer\AisFileSyncer.csproj", "{BFAF1B62-8497-44F0-8281-E9E114C9AF09}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AisFileSyncer.Infrastructure", "AisFileSyncer.Infrastructure\AisFileSyncer.Infrastructure.csproj", "{2BF46E37-CFFF-48C6-A1F1-05AF2D115D88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AisFileSyncer.Infrastructure", "AisFileSyncer.Infrastructure\AisFileSyncer.Infrastructure.csproj", "{2BF46E37-CFFF-48C6-A1F1-05AF2D115D88}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTests", "UnitTests", "{7E0925B8-2336-4211-A228-75AB27697631}"
 EndProject

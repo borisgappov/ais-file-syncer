@@ -147,4 +147,17 @@ app {
         /* Never collapse the sidebar for wide screens */
         display: block;
     }
+
+    .grid-row {
+        height: 75px;
+    }
+
+    .preview-text {
+        height: 50px;
+        width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 9px;
+        cursor: pointer;
+    }
 }

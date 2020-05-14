@@ -7,4 +7,12 @@
         Done,
         Cancelled
     }
+
+    public enum ContentType
+    {
+        Image,
+        Text,
+        Html,
+        Unknown
+    }
 }

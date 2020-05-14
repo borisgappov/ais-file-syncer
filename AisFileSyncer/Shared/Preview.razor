@@ -1,0 +1,43 @@
+﻿@using AisFileSyncer.Infrastructure.Interfaces
+@using AisFileSyncer.Infrastructure.Models
+@inject IContentProvider _contentProvider
+
+<div style="height: 50px;">
+    @switch (_contentType)
+    {
+        case ContentType.Image:
+            <img src="@content" height="50px" />
+            break;
+        case ContentType.Text:
+        case ContentType.Html:
+            <div class="preview-text" @onclick="ShowPopup">
+                <pre>@content</pre>
+            </div>
+            break;
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string fileName { get; set; }
+
+    ContentType _contentType = ContentType.Unknown;
+    string content = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _contentType = _contentProvider.GetContentType(fileName);
+        if (_contentType != ContentType.Unknown)
+        {
+            Task.Run(async () =>
+            {
+                content = await _contentProvider.GetContent(fileName);
+            }).Wait();
+        }
+    }
+
+    void ShowPopup()
+    {
+        Console.WriteLine(content);
+    }
+}

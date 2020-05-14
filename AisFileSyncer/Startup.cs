@@ -11,6 +11,7 @@ namespace AisFileSyncer
         {
             services.AddSingleton<IFileService, FileService>();
             services.AddSingleton<IFileDownloader, FileDownloader>();
+            services.AddSingleton<IContentProvider, ContentProvider>();
             services.AddSingleton<ISyncer, Syncer>();
         }
 

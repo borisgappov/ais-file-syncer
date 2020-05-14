@@ -2,6 +2,7 @@
 @using AisFileSyncer.Infrastructure.Interfaces
 @using AisFileSyncer.Infrastructure.Models
 @using AisFileSyncer.Infrastructure.Utils
+@inject IContentProvider _contentProvider
 @inject ISyncer _syncer
 
 @if (_files == null)
@@ -10,37 +11,41 @@
 }
 else
 {
-<div class="d-flex pb-2">
-    <button class="btn btn-primary" @onclick="SyncClick" disabled="@InProgress">Sync</button>
-    <button class="btn btn-primary ml-2" @onclick="ReloadAll" disabled="@InProgress">Reload</button>
-    <div class="ml-2 pt-1 mr-1">
-        Number of tasks:
+    <Modal @ref="Modal"></Modal>
+
+    <div class="d-flex pb-2">
+        <button class="btn btn-primary" @onclick="SyncClick" disabled="@InProgress">Sync</button>
+        <button class="btn btn-primary ml-2" @onclick="ReloadAll" disabled="@InProgress">Reload</button>
+        <div class="ml-2 pt-1 mr-1">
+            Number of tasks:
+        </div>
+        <div>
+            <Dropdown TItem="string" OnSelected="@OnSelected" disabled="@InProgress">
+                <InitialTip>@_selectedNumber</InitialTip>
+                <ChildContent>
+                    @foreach (var n in _threadNumbers)
+                    {
+                        <DropdownListItem Item="@n.ToString()">@n</DropdownListItem>
+                    }
+                </ChildContent>
+            </Dropdown>
+        </div>
+        <button class="btn btn-primary" @onclick="Cancel" disabled="@NotInProgress">Cancel</button>
+        <div class="custom-control custom-checkbox m-2">
+            <input type="checkbox" class="custom-control-input" id="doneCheck" @bind="exit">
+            <label class="custom-control-label" for="doneCheck">Exit when done</label>
+        </div>
+        <button @onclick="() => Modal.Open()">Open Modal</button>
     </div>
-    <div>
-        <Dropdown TItem="string" OnSelected="@OnSelected" disabled="@InProgress">
-            <InitialTip>@_selectedNumber</InitialTip>
-            <ChildContent>
-                @foreach (var n in _threadNumbers)
-                {
-                    <DropdownListItem Item="@n.ToString()">@n</DropdownListItem>
-                }
-            </ChildContent>
-        </Dropdown>
-    </div>
-    <button class="btn btn-primary" @onclick="Cancel" disabled="@NotInProgress">Cancel</button>
-    <div class="custom-control custom-checkbox m-2">
-        <input type="checkbox" class="custom-control-input" id="doneCheck" @bind="exit">
-        <label class="custom-control-label" for="doneCheck">Exit when done</label>
-    </div>
-</div>
 
     <table class="table">
         <thead>
             <tr>
-                <th>File Name</th>
-                <th>Status</th>
-                <th>Progress, %</th>
-                <th>Download time</th>
+                <th width="10%">File Name</th>
+                <th width="1%">Status</th>
+                <th width="25%">Progress, %</th>
+                <th width="10%">Time</th>
+                <th width="54%">Preview</th>
             </tr>
         </thead>
         <tbody>
@@ -49,10 +54,54 @@ else
                 @foreach (var file in _files)
                 {
                     <tr>
-                        <td>@file.Name</td>
-                        <td>@file.DownloadStatus</td>
-                        <td>@file.Percent</td>
-                        <td>@file.DownloadSpan.ToString(@"mm\:ss\.fff")</td>
+                        <td class="grid-row">@file.Name</td>
+                        <td>
+
+                            @switch (file.DownloadStatus)
+                            {
+                                case FileDownloadStatus.Waiting:
+                                    <div class="spinner-border text-primary spinner-border-sm" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                    break;
+                                case FileDownloadStatus.Done:
+                                    <span class="oi oi-check text-success" aria-hidden="true"></span>
+                                    break;
+                                case FileDownloadStatus.InProgress:
+                                    <div class="spinner-grow text-primary spinner-grow-sm" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                    break;
+                                case FileDownloadStatus.Cancelled:
+                                    <span class="oi oi-x text-danger" aria-hidden="true"></span>
+                                    break;
+                            }
+                        </td>
+                        <td>
+                            <div class="progress">
+                                <div class="progress-bar @(file.Percent > 0 && file.DownloadStatus == FileDownloadStatus.InProgress
+                                                           ? "progress-bar-striped progress-bar-animated"
+                                                           : "")"
+                                     role="progressbar"
+                                     style="width: @file.Percent%"
+                                     aria-valuenow="@file.Percent"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    @(file.Percent > 0 ? file.Percent.ToString() : string.Empty)
+                                </div>
+                            </div>
+                        </td>
+                        <td>@(file.DownloadSpan == TimeSpan.Zero ? "" : file.DownloadSpan.ToString(@"mm\:ss\.fff"))</td>
+                        <td>
+                            @if (_contentProvider.GetContentType(file.Name) == ContentType.Unknown)
+                            {
+                                <span class="oi oi-file text-primary" style="font-size: 33px;"></span>
+                            }
+                            else if (file.DownloadStatus == FileDownloadStatus.Done)
+                            {
+                                <Preview fileName="@file.Name"></Preview>
+                            }
+                        </td>
                     </tr>
                 }
             }
@@ -62,13 +111,11 @@ else
 
 @code {
     object _lock = new object();
-
+    private Modal Modal { get; set; }
     FileModel[] _files;
-
     int[] _threadNumbers = Enumerable.Range(1, 10).ToArray();
     int _selectedNumber = 0;
     SyncTimer _timer = new SyncTimer();
-
     public bool InProgress { get => _syncer?.Status == FileDownloadStatus.InProgress; }
     public bool NotInProgress { get => !InProgress; }
 
@@ -120,7 +167,7 @@ else
         StartTimer();
     }
 
-    private async Task OnSelected(string selection)
+    private void OnSelected(string selection)
     {
         _selectedNumber = Convert.ToInt32(selection);
         _syncer.NumberOfTasks = _selectedNumber;
