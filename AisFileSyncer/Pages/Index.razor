@@ -4,6 +4,7 @@
 @using AisFileSyncer.Infrastructure.Utils
 @inject IContentProvider _contentProvider
 @inject ISyncer _syncer
+@inject IJSRuntime JSRuntime
 
 @if (_files == null)
 {
@@ -11,7 +12,22 @@
 }
 else
 {
-    <Modal @ref="Modal"></Modal>
+    <Modal @ref="_modal" modalClass="@_modalCss" title="File preview">
+        @switch (_previewContent.contentType)
+        {
+            case ContentType.Image:
+                <img src="@_previewContent.content" style="height: auto; margin: auto;" />
+                break;
+            case ContentType.Text:
+                    <pre class="m-0"><code class="language-javascript">@_previewContent.content</code></pre>
+                break;
+            case ContentType.Html:
+                <div class="preview-content">
+                    <pre><code class="language-html">@_previewContent.content</code></pre>
+                </div>
+                break;
+        }
+    </Modal>
 
     <div class="d-flex pb-2">
         <button class="btn btn-primary" @onclick="SyncClick" disabled="@InProgress">Sync</button>
@@ -35,7 +51,6 @@ else
             <input type="checkbox" class="custom-control-input" id="doneCheck" @bind="exit">
             <label class="custom-control-label" for="doneCheck">Exit when done</label>
         </div>
-        <button @onclick="() => Modal.Open()">Open Modal</button>
     </div>
 
     <table class="table">
@@ -99,7 +114,7 @@ else
                             }
                             else if (file.DownloadStatus == FileDownloadStatus.Done)
                             {
-                                <Preview fileName="@file.Name"></Preview>
+                                <Preview fileName="@file.Name" OnClickCallback="PreviewClick"></Preview>
                             }
                         </td>
                     </tr>
@@ -111,14 +126,15 @@ else
 
 @code {
     object _lock = new object();
-    private Modal Modal { get; set; }
+    private Modal _modal { get; set; }
     FileModel[] _files;
     int[] _threadNumbers = Enumerable.Range(1, 10).ToArray();
     int _selectedNumber = 0;
     SyncTimer _timer = new SyncTimer();
     public bool InProgress { get => _syncer?.Status == FileDownloadStatus.InProgress; }
     public bool NotInProgress { get => !InProgress; }
-
+    PreviewContent _previewContent = new PreviewContent();
+    string _modalCss = "preview-modal";
     bool exit = false;
 
     protected override async Task OnInitializedAsync()
@@ -181,5 +197,13 @@ else
     void StartTimer()
     {
         _timer.Start(() => this.StateHasChanged(), 300);
+    }
+
+    async Task PreviewClick(PreviewContent previewContent)
+    {
+        _previewContent = previewContent;
+        _modalCss = "preview-modal " + (_previewContent.contentType == ContentType.Image ? "image" : "text");
+        _modal.Open();
+        await JSRuntime.InvokeAsync<string>("hilight");
     }
 }

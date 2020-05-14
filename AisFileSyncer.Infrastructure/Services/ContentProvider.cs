@@ -1,6 +1,5 @@
 ﻿using AisFileSyncer.Infrastructure.Interfaces;
 using AisFileSyncer.Infrastructure.Models;
-
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -50,8 +49,7 @@ namespace AisFileSyncer.Infrastructure.Services
                 case ContentType.Text:
                     return await File.ReadAllTextAsync(filePath);
                 case ContentType.Html:
-                    var html = await File.ReadAllTextAsync(filePath);
-                    return System.Security.SecurityElement.Escape(html);
+                    return await File.ReadAllTextAsync(filePath);
             }
             return string.Empty;
         }

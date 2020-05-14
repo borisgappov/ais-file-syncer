@@ -3,15 +3,15 @@
 @inject IContentProvider _contentProvider
 
 <div style="height: 50px;">
-    @switch (_contentType)
+    @switch (_previewContent.contentType)
     {
         case ContentType.Image:
-            <img src="@content" height="50px" />
+            <img src="@_previewContent.content" height="50px" @onclick="@OnClick" style="cursor:pointer"/>
             break;
         case ContentType.Text:
         case ContentType.Html:
-            <div class="preview-text" @onclick="ShowPopup">
-                <pre>@content</pre>
+            <div class="preview-text" @onclick="@OnClick">
+                <pre>@_previewContent.content</pre>
             </div>
             break;
     }
@@ -21,23 +21,25 @@
     [Parameter]
     public string fileName { get; set; }
 
-    ContentType _contentType = ContentType.Unknown;
-    string content = string.Empty;
+    [Parameter]
+    public EventCallback<PreviewContent> OnClickCallback { get; set; }
+
+    PreviewContent _previewContent = new PreviewContent();
 
     protected override void OnInitialized()
     {
-        _contentType = _contentProvider.GetContentType(fileName);
-        if (_contentType != ContentType.Unknown)
+        _previewContent.contentType = _contentProvider.GetContentType(fileName);
+        if (_previewContent.contentType != ContentType.Unknown)
         {
             Task.Run(async () =>
             {
-                content = await _contentProvider.GetContent(fileName);
+                _previewContent.content = await _contentProvider.GetContent(fileName);
             }).Wait();
         }
     }
 
-    void ShowPopup()
+    async Task OnClick()
     {
-        Console.WriteLine(content);
+        await OnClickCallback.InvokeAsync(_previewContent);
     }
 }

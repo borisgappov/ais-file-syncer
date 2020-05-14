@@ -1,0 +1,44 @@
+﻿@page "/errors"
+@using AisFileSyncer.Infrastructure.Interfaces
+@inject IExceptionService _exceptionService
+@inject IJSRuntime JSRuntime
+
+<h5>Examples</h5>
+<button class="btn btn-warning" @onclick="Warning">Warning</button>
+<button class="btn btn-danger" @onclick="Error">Error</button>
+<button class="btn btn-success" @onclick="Success">Success</button>
+<button class="btn btn-info" @onclick="Info">Info</button>
+
+<h5>Throw exception</h5>
+<button class="btn btn-danger" @onclick="Throw">Throw</button>
+
+@code {
+    async Task Warning()
+    {
+        await JSRuntime.InvokeAsync<object>("swal", "Warning", "Please pay attention!", "warning");
+    }
+    async Task Error()
+    {
+        await JSRuntime.InvokeAsync<object>("swal", "Oops", "Something went wrong!", "error");
+    }
+    async Task Success()
+    {
+        await JSRuntime.InvokeAsync<object>("swal", "Good job!", "You clicked the button!", "success");
+    }
+    async Task Info()
+    {
+        await JSRuntime.InvokeAsync<object>("swal", "Information", "Additional information here", "info");
+    }
+
+    void Throw()
+    {
+        try
+        {
+            throw new Exception("Error thrown!");
+        }
+        catch (Exception ex)
+        {
+            _exceptionService.Exception = ex;
+        }
+    }
+}

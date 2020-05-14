@@ -1,14 +1,38 @@
 ﻿@inherits LayoutComponentBase
+@using AisFileSyncer.Infrastructure.Interfaces
+@using AisFileSyncer.Infrastructure.Utils
+@inject IJSRuntime JSRuntime
+@inject IExceptionService _exceptionService
 
 <div class="sidebar">
     <NavMenu />
 </div>
 
 <div class="main">
-    <div class="top-row px-4">
+    <div class="top-row px-4" style="z-index: 1;">
     </div>
 
     <div class="content px-4">
         @Body
     </div>
 </div>
+
+
+@code {
+
+    SyncTimer _timer = new SyncTimer();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _timer.Start(() => {
+            if(_exceptionService?.Exception != null)
+            {
+                Task.Run(async () =>
+                {
+                    await JSRuntime.InvokeAsync<object>("swal", "Error", _exceptionService.Exception.Message, "error");
+                }).Wait();
+                _exceptionService.Clear();
+            }
+        }, 1000);
+    }
+}
