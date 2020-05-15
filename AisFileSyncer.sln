@@ -11,6 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTests", "UnitTests", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AisFileSyncer.Infrastructure.UnitTests", "AisFileSyncer.Infrastructure.UnitTests\AisFileSyncer.Infrastructure.UnitTests.csproj", "{8061999B-B1C5-4D02-96A0-EC379A6CDFCD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1CDD490A-64A0-4073-B36D-FCB6242A1A0E}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

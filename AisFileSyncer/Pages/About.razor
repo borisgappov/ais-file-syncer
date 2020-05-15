@@ -2,32 +2,7 @@
 
 <h4>About</h4>
 
-<h5>The task:</h5>
+<p>
+    Test application
+</p>
 
-<p>
-    You will have access to a library which provides an API to list the user’s available files. There’s a AisUriProviderApi.AisUriProvider class and it has the public IEnumerable@("<Uri>")Get(); method, which returns your file’s URIs. Let’s assume that you should always have 10 files at a time on your storage, but those might be totally different ones.
-</p>
-<p>
-    You can download this class library from:<br />
-
-    <a href="https://bitstore.blob.core.windows.net:443/test/AisUriProviderApi.zip">
-        https://bitstore.blob.core.windows.net:443/test/AisUriProviderApi.zip
-    </a>
-</p>
-<p>
-    Write an application using a C# based technology, which accomplishes the following :
-    <ul>
-        <li>Lists the currently available 10 files</li>
-        <li>Refresh the list automatically every 5 minutes, or when the user’s requesting it. We can call this the sync operation.</li>
-        <li>Store the last 10 files locally and load it on app start-up.</li>
-        <li>Delete any unnecessary files after syncing.</li>
-        <li>Download the files in a parallel way, where the user should be able to specify the degree of parallelism. For example you shouldn’t run more than N tasks at a time and there should not be download tasks explicitly waiting for each other.</li>
-        <li>The user should be able to cancel sync operations</li>
-        <li>Display a dialog to the user if they want to exit while files are being downloaded. The user should be able to quit anyway.</li>
-        <li>The application should be able to represent the files visually, preferably in grid</li>
-        <li>If the file is an image, the application should display the image</li>
-        <li>If the file is text based, you should show the preview of the text</li>
-        <li>For anything else you should show a placeholder</li>
-        <li>Errors should be handled gracefully, and displayed to the user</li>
-    </ul>
-</p>
